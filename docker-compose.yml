@@ -1,0 +1,31 @@
+version: "3.8"
+
+services: 
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports: 
+      - 8080:8080
+    volumes: 
+      - .:/app
+      - '/app/node_modules'
+    depends_on: 
+      - mysql_server
+      - mysql_server2
+  
+  mysql_server:
+    image: mysql:8.0
+    environment: 
+      - MYSQL_DATABASE=docker_jwt_user
+      - MYSQL_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=root
+
+
+  mysql_server2:
+    image: mysql:8.0
+    environment: 
+      - MYSQL_DATABASE=docker_jwt_mobil
+      - MYSQL_PASSWORD=root
+      - MYSQL_ROOT_PASSWORD=root
+      

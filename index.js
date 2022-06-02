@@ -1,12 +1,26 @@
 const express = require("express");
 const jwt = require('jsonwebtoken');
 const app = express();
+// const jwtCheck = require("./app/jwtCheck.js");
 
 const {conn1,conn2} = require("./app/dbConfig.js");
 
 app.use(express.json());
 // parse requests of content-type - application/x-www-form-urlencoded
 app.use(express.urlencoded({ extended: true }));
+
+const jwtCheck = (req, res) => {
+    if(
+        !req.headers.authorization ||
+        !req.headers.authorization.startsWith('Bearer') ||
+        !req.headers.authorization.split(' ')[1]
+    ){
+        return res.status(422).json({
+        message: "Please provide the token",
+        });
+    }
+}
+
 
 // simple route
 app.get("/", (req, res) => {
@@ -36,12 +50,12 @@ app.get('/create-table-mobil', function (req, res) {
     conn2.connect(function(err) {
       if (err) throw err;
       const sql = `
-      CREATE TABLE IF NOT EXISTS buku (
+      CREATE TABLE IF NOT EXISTS mobil (
         id INT AUTO_INCREMENT PRIMARY KEY,
         nama VARCHAR(255),
         jenis VARCHAR(255),
         harga INT(11),
-        tahun INT(11)
+        tahun INT(11),
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       )  ENGINE=INNODB;
     `;
@@ -83,8 +97,38 @@ app.post("/register",(req, res) => {
 })
 
 app.get("/mobil",(req,res) => {
-    //jwtCheck(req, res);
+    // jwtCheck(req, res);
     conn2.query("SELECT * FROM mobil",(error,result) => {
+        res.json({body: result });
+    })
+})
+
+app.get("/mobil/:id",(req,res) => {
+    conn2.query("SELECT * FROM mobil where id=?",[req.params.id],(error,result) => {
+        res.json({body: result });
+    })
+})
+
+app.get("/mobil/delete/:id",(req,res) => {
+    conn2.query("DELETE FROM mobil where id=?",[req.params.id],(error,result) => {
+        res.json({body: result });
+    })
+})
+
+app.get("/mobil/edit/:id",(req,res) => {
+    
+    conn2.query('UPDATE mobil SET nama = ? , jenis = ?,harga = ?,tahun = ? WHERE id=?',
+    [req.body.nama, req.body.jenis, req.body.harga, req.body.tahun,req.params.id],
+    (error,result) => {
+        res.json({body: result });
+    })
+})
+
+
+app.post("/mobil",(req,res) => {
+    let sql1 = `INSERT INTO mobil (nama,jenis,harga,tahun) VALUES (?,?,?,?)`;
+    conn2.query(sql1,[req.body.nama,req.body.jenis,req.body.harga,req.body.tahun],
+    (error,result) => {
         res.json({body: result });
     })
 })
